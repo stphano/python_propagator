@@ -1,3 +1,13 @@
+# General imports
+import numpy as np
+
+# Tudatpy imports
+import tudatpy
+from tudatpy.kernel import constants
+from tudatpy.kernel.simulation import propagation_setup
+from tudatpy.kernel.astro import frames
+from tudatpy.kernel.math import interpolators
+
 class ThrustGuidance:
     """
     Class that defines and updates the thrust guidance of the deep space propagator problem at each time step.
@@ -43,10 +53,10 @@ class ThrustGuidance:
         # Initialize time
         current_time = initial_time
         # Loop over nodes
-        for i in range((len(parameter_vector) - 2)/2): # qui mi da non risolto perche e' ancora basato sulla lunghezza precedente
+        for i in range(4): #((len(parameter_vector) - 2)/2): # qui mi da non risolto perche e' ancora basato sulla lunghezza precedente
             # Store time as key, thrust angle as value
             self.thrust_angle_dict[current_time] = parameter_vector[i + 2]
-            self.thrust_angle_2_dict[current_time] = parameter_vector[i + 2 + (len(parameter_vector) - 2)/2]
+            self.thrust_angle_2_dict[current_time] = parameter_vector[i + 2 + 5]#(len(parameter_vector) - 2)/2]
             # Increase time
             current_time += self.time_interval
         # Create interpolator settings
@@ -78,18 +88,20 @@ class ThrustGuidance:
         angle_2 = self.thrust_angle_2_interpolator.interpolate(time) #out-of-plane
         # Set thrust in vertical frame and transpose it
         # thrust_direction_vertical_frame = np.array([[0, np.sin(angle), - np.cos(angle)]]).T
-        thrust_direction_body_frame = np.array([[np.cos(angle_1)*np.cos(angle_2), np.sin(angle_1)*np.cos(angle_2), np.sin(angle_2)]]).T
+        #thrust_direction_body_frame = np.array([[np.cos(angle_1)*np.cos(angle_2), np.sin(angle_1)*np.cos(angle_2), np.sin(angle_2)]]).T
+        thrust_inertial_frame = np.array(
+            [[np.cos(angle_1) * np.cos(angle_2), np.sin(angle_1) * np.cos(angle_2), np.sin(angle_2)]]).T
         # Retrieve spacecraft state to compute the rotation matrix
-        spacecraft_state = self.vehicle_body.get_state(time)
-        radial = np.array(spacecraft_state[0], spacecraft_state[1], spacecraft_state[2])
-        velocity = np.array(spacecraft_state[3], spacecraft_state[4], spacecraft_state[5])
-        x_axis = -radial / np.linalg.norm(radial)
-        z_axis = np.cross(velocity/np.linalg.norm(radial), x_axis)
-        y_axis = np.cross(z_axis, x_axis)
-        body_to_inertial_frame = np.matrix([[x_axis[0], y_axis[0], z_axis[0]], [x_axis[1], y_axis[1], z_axis[1]], [x_axis[2], y_axis[2], z_axis[2]]])
+        #spacecraft_state = self.vehicle_body.get_state(time)
+        #radial = np.array(spacecraft_state[0], spacecraft_state[1], spacecraft_state[2])
+        #velocity = np.array(spacecraft_state[3], spacecraft_state[4], spacecraft_state[5])
+        #x_axis = -radial / np.linalg.norm(radial)
+        #z_axis = np.cross(velocity/np.linalg.norm(radial), x_axis)
+        #y_axis = np.cross(z_axis, x_axis)
+        #body_to_inertial_frame = np.matrix([[x_axis[0], y_axis[0], z_axis[0]], [x_axis[1], y_axis[1], z_axis[1]], [x_axis[2], y_axis[2], z_axis[2]]])
         # Compute the thrust in the inertial frame
-        thrust_inertial_frame = np.dot(body_to_inertial_frame,
-                                       thrust_direction_body_frame)
+        #thrust_inertial_frame = np.dot(body_to_inertial_frame,
+         #                              thrust_direction_body_frame)
         return thrust_inertial_frame
 
     def get_current_thrust_magnitude(self,
@@ -137,7 +149,7 @@ def get_thrust_acceleration_model_from_parameters(thrust_parameters: list,
 
 ######
     # Create Thrust Guidance object
-    thrust_guidance = ThrustGuidance(bodies.get_body('Vehicle'),
+    thrust_guidance = ThrustGuidance(bodies.get_body('CubeSat'),
                                                 initial_time,
                                                 thrust_parameters)
     # Retrieves thrust functions
