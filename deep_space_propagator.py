@@ -8,9 +8,9 @@ from tudatpy.io import save2txt
 from matplotlib import pyplot as plt
 
 # Problem-specific imports
-from defining_thrust import defining_thrust
+#from defining_thrust import defining_thrust
 from defining_thrust import get_thrust_acceleration_model_from_parameters
-import defining_thrust as Util
+#import defining_thrust as Util
 
 # # define initial and end epoch
 simulation_start_epoch = 10000.0
@@ -42,9 +42,9 @@ body_settings = environment_setup.get_default_body_settings(
 bodies = environment_setup.create_system_of_bodies(body_settings)
 
 # #  Create veichle
-bodies.create_empty_body("3UCubeSat")
+bodies.create_empty_body("CubeSat")
 # set mass
-bodies.get_body("3UCubeSat").set_constant_mass(4.0)
+bodies.get_body("CubeSat").set_constant_mass(4.0)
 # set radiation coefficients
 reference_area_radiation = 0.4
 radiation_pressure_coefficient = 1.2
@@ -54,13 +54,13 @@ radiation_pressure_settings = environment_setup.radiation_pressure.cannonball(
     "Sun", reference_area_radiation, radiation_pressure_coefficient, occulting_bodies
 )
 environment_setup.add_radiation_pressure_interface(
-    bodies, "3UCubeSat", radiation_pressure_settings)
+    bodies, "CubeSat", radiation_pressure_settings)
 
 # # create accelerations
-bodies_to_propagate = ["3UCubeSat"]
+bodies_to_propagate = ["CubeSat"]
 central_bodies = ["Sun"]
 accelerations_settings_3u_cubesat = dict(
-    bodies_to_propagate = [get_thrust_acceleration_model_from_parameters(thrust_parameters,
+    CubeSat = [get_thrust_acceleration_model_from_parameters(thrust_parameters,
                                                               bodies,
                                                               simulation_start_epoch,
                                                               constant_specific_impulse)],
@@ -115,7 +115,7 @@ accelerations_settings_3u_cubesat = dict(
     ]
 )
 
-acceleration_settings = {"3UCubeSat": accelerations_settings_3u_cubesat}
+acceleration_settings = {"CubeSat": accelerations_settings_3u_cubesat}
 acceleration_models = propagation_setup.create_acceleration_models(
     bodies,
     acceleration_settings,
@@ -136,8 +136,8 @@ initial_state = conversion.keplerian_to_cartesian(
 )
 # define the variables we need
 dependent_variables_to_save = [
-    propagation_setup.dependent_variable.total_acceleration("3UCubeSat"),
-    propagation_setup.dependent_variable.keplerian_state("3UCubeSat", "Sun"),
+    propagation_setup.dependent_variable.total_acceleration("CubeSat"),
+    propagation_setup.dependent_variable.keplerian_state("CubeSat", "Sun"),
 ]
 # create propagation settings
 propagator_settings = propagation_setup.propagator.translational(
